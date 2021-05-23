@@ -2,14 +2,14 @@ use std::{error::Error, fmt::Display, fs::File};
 
 use crate::memory_profiler::AllocationData;
 use crate::score::Score;
-use crate::simulation::{LeftNode,RightNode};
+use crate::simulation::{LeftNode, RightNode};
 use crate::{
     score,
     simulation::{CostField, Simulation},
 };
 use noise::{NoiseFn, Perlin};
-use std::sync::Arc;
 use std::io::Write;
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 struct Node {
@@ -23,7 +23,6 @@ impl LeftNode for Node {
     fn aggregated_cost(&self) -> Score {
         self.aggregated_cost
     }
-    
 }
 impl RightNode for Node {
     fn set_aggregated_cost(&mut self, score: Score) {
@@ -46,7 +45,10 @@ impl Simulation for SimulationSpace {
     type RightNodeType = Node;
     type CostFieldType = PerlinCostField;
 
-    fn prepare_step_slices(&mut self, x: usize) -> (&[Self::LeftNodeType], &mut [Self::RightNodeType]) {
+    fn prepare_step_slices(
+        &mut self,
+        x: usize,
+    ) -> (&[Self::LeftNodeType], &mut [Self::RightNodeType]) {
         let (left, right) = self.nodes.split_at_mut(x * self.height);
         let previous = if x > 0 {
             let (_, previous) = left.split_at((x - 1) * self.height);
@@ -126,7 +128,7 @@ pub fn naive(out_path: String, x: usize, y: usize, debug: bool) -> Result<(), Bo
     AllocationData::collect_data()?;
     let mut simulation = SimulationSpace::new(x, y, 6.0);
     for x in 0..simulation.width {
-        print!("{} ",x);
+        print!("{} ", x);
         std::io::stdout().flush().unwrap();
         simulation.simulate_par(x);
         AllocationData::collect_data()?;
@@ -165,10 +167,10 @@ impl Display for SimulationSpace {
         for y in 0..self.height {
             for x in 0..self.width {
                 let cost = self.nodes[x * self.height + y].aggregated_cost;
-                if cost != Score::new(0.0) {
-                    write!(f, "{:+.2} ", cost.0)?;
-                } else {
+                if cost == Score::new(0.0) {
                     write!(f, " x ")?;
+                } else {
+                    write!(f, "{:+.2} ", cost.0)?;
                 }
             }
             writeln!(f)?;

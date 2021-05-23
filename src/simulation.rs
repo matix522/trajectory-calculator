@@ -18,7 +18,9 @@ pub trait Simulation {
     type LeftNodeType: LeftNode + Send + Sync;
     type RightNodeType: RightNode + Send + Sync;
 
-    type CostFieldType: CostField<LeftNodeType = Self::LeftNodeType, RightNodeType = Self::RightNodeType> + Send + Sync;
+    type CostFieldType: CostField<LeftNodeType = Self::LeftNodeType, RightNodeType = Self::RightNodeType>
+        + Send
+        + Sync;
     fn prepare_step_slices(
         &mut self,
         iteration: usize,

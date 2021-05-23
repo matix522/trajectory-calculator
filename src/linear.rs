@@ -2,14 +2,14 @@ use std::{error::Error, fmt::Display, fs::File};
 
 use crate::memory_profiler::AllocationData;
 use crate::score::Score;
-use crate::simulation::{LeftNode,RightNode};
+use crate::simulation::{LeftNode, RightNode};
 use crate::{
     score,
     simulation::{CostField, Simulation},
 };
 use noise::{NoiseFn, Perlin};
-use std::sync::Arc;
 use std::io::Write;
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 struct Node {
@@ -23,7 +23,6 @@ impl LeftNode for Node {
     fn aggregated_cost(&self) -> Score {
         self.aggregated_cost
     }
-    
 }
 impl RightNode for Node {
     fn set_aggregated_cost(&mut self, score: Score) {
@@ -46,14 +45,19 @@ impl Simulation for SimulationSpace {
     type RightNodeType = Node;
     type CostFieldType = PerlinCostField;
 
-    fn prepare_step_slices(&mut self, x: usize) -> (&[Self::LeftNodeType], &mut [Self::RightNodeType]) {
-        let right : Vec<_> = (0..self.height).map(|y|Node {
-            x,
-            y,
-            parent: None,
-            aggregated_cost: Score::new(0.0),
-            is_path: false,
-        }).collect();
+    fn prepare_step_slices(
+        &mut self,
+        x: usize,
+    ) -> (&[Self::LeftNodeType], &mut [Self::RightNodeType]) {
+        let right: Vec<_> = (0..self.height)
+            .map(|y| Node {
+                x,
+                y,
+                parent: None,
+                aggregated_cost: Score::new(0.0),
+                is_path: false,
+            })
+            .collect();
         self.nodes.push(right);
         let len = self.nodes.len();
         let (left, right) = self.nodes.split_at_mut(len - 1);
@@ -113,7 +117,7 @@ pub fn linear(out_path: String, x: usize, y: usize, debug: bool) -> Result<(), B
     AllocationData::collect_data()?;
     let mut simulation = SimulationSpace::new(x, y, 6.0);
     for x in 0..simulation.width {
-        print!("{} ",x);
+        print!("{} ", x);
         std::io::stdout().flush().unwrap();
         simulation.simulate_par(x);
         AllocationData::collect_data()?;
@@ -151,10 +155,10 @@ impl Display for SimulationSpace {
         for y in 0..self.height {
             for x in 0..self.width {
                 let cost = self.nodes[x][y].aggregated_cost;
-                if cost != Score::new(0.0) {
-                    write!(f, "{:+.2} ", cost.0)?;
-                } else {
+                if cost == Score::new(0.0) {
                     write!(f, " x ")?;
+                } else {
+                    write!(f, "{:+.2} ", cost.0)?;
                 }
             }
             writeln!(f)?;
@@ -177,10 +181,7 @@ impl Display for SimulationSpace {
             for x in 1..self.width {
                 if let Some(parent_id) = self.nodes[x][y].parent {
                     let cost = cost_f
-                        .get_cost(
-                            &self.nodes[x][y],
-                            &self.nodes[x - 1][parent_id],
-                        )
+                        .get_cost(&self.nodes[x][y], &self.nodes[x - 1][parent_id])
                         .0;
                     min_cost = min_cost.min(cost);
                     max_cost = max_cost.max(cost);
@@ -194,10 +195,7 @@ impl Display for SimulationSpace {
             for x in 1..self.width {
                 if let Some(parent_id) = self.nodes[x][y].parent {
                     let cost = cost_f
-                        .get_cost(
-                            &self.nodes[x][y],
-                            &self.nodes[x - 1][parent_id],
-                        )
+                        .get_cost(&self.nodes[x][y], &self.nodes[x - 1][parent_id])
                         .0;
                     let is_path = if self.nodes[x][y].is_path {
                         "\x1b[38;2;0;255;0m"

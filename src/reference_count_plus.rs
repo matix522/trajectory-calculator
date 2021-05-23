@@ -7,8 +7,8 @@ use std::{
 
 use crate::memory_profiler::AllocationData;
 use crate::score::Score;
-use crate::simulation::{LeftNode, RightNode};
 use crate::simulation::{CostField, Simulation};
+use crate::simulation::{LeftNode, RightNode};
 
 use noise::{NoiseFn, Perlin};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -37,7 +37,7 @@ impl LeftNode for Node {
         self.aggregated_cost
     }
 }
-impl RightNode for Node{
+impl RightNode for Node {
     fn set_aggregated_cost(&mut self, score: Score) {
         self.aggregated_cost = score;
     }
@@ -48,7 +48,12 @@ impl RightNode for Node{
 
 impl Node {
     fn reverse_path(self: Arc<Self>) -> ReversePath {
-        ReversePath { value: Some(Arc::new(Parent { y: self.y, parent: self.parent.clone()} )) }
+        ReversePath {
+            value: Some(Arc::new(Parent {
+                y: self.y,
+                parent: self.parent.clone(),
+            })),
+        }
     }
     const fn new(x: usize, y: usize) -> Self {
         Node {
@@ -91,11 +96,13 @@ impl Simulation for SimulationSpace {
         self.cost_field.clone()
     }
 
-    fn prepare_step_slices(&mut self, _: usize) -> (&[Self::LeftNodeType], &mut [Self::RightNodeType]) {
-        std::mem::swap(&mut self.current , &mut self.previous);
+    fn prepare_step_slices(
+        &mut self,
+        _: usize,
+    ) -> (&[Self::LeftNodeType], &mut [Self::RightNodeType]) {
+        std::mem::swap(&mut self.current, &mut self.previous);
         self.x += 1;
-        self.current = 
-            (0..self.height)
+        self.current = (0..self.height)
             .into_par_iter()
             .map(|y| Node::new(self.x, y))
             .collect();
@@ -104,7 +111,10 @@ impl Simulation for SimulationSpace {
     }
 
     fn set_parent_of(parent: &Self::LeftNodeType, child: &mut Self::RightNodeType) {
-        child.parent = Some(Arc::new(Parent { y: parent.y, parent: parent.parent.clone()} ));
+        child.parent = Some(Arc::new(Parent {
+            y: parent.y,
+            parent: parent.parent.clone(),
+        }));
     }
 }
 

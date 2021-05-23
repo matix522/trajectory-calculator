@@ -7,14 +7,14 @@ use structopt::StructOpt;
 #[macro_use]
 extern crate lazy_static;
 
+mod linear;
 mod memory_profiler;
-mod reference_count_plus;
 mod naive;
 mod reference_count;
+mod reference_count_plus;
 mod score;
 mod simulation;
 mod utils;
-mod linear;
 
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
@@ -38,7 +38,10 @@ type SimulationFunc = fn(String, usize, usize, bool) -> Result<(), Box<dyn Error
 lazy_static! {
     static ref SIMULATIONS: HashMap<&'static str, SimulationFunc> = vec![
         ("rc", reference_count::reference_count as SimulationFunc),
-        ("rc+", reference_count_plus::reference_count_plus as SimulationFunc),
+        (
+            "rc+",
+            reference_count_plus::reference_count_plus as SimulationFunc
+        ),
         ("naive", naive::naive as SimulationFunc),
         ("linear", linear::linear as SimulationFunc),
     ]

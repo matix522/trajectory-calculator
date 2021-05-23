@@ -7,8 +7,8 @@ use std::{
 
 use crate::memory_profiler::AllocationData;
 use crate::score::Score;
-use crate::simulation::{LeftNode, RightNode};
 use crate::simulation::{CostField, Simulation};
+use crate::simulation::{LeftNode, RightNode};
 
 use noise::{NoiseFn, Perlin};
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
@@ -35,7 +35,7 @@ impl LeftNode for ArcNode {
         self.aggregated_cost
     }
 }
-impl RightNode for Node{
+impl RightNode for Node {
     fn set_aggregated_cost(&mut self, score: Score) {
         self.aggregated_cost = score;
     }
@@ -89,14 +89,20 @@ impl Simulation for SimulationSpace {
         self.cost_field.clone()
     }
 
-    fn prepare_step_slices(&mut self, _: usize) -> (&[Self::LeftNodeType], &mut [Self::RightNodeType]) {
+    fn prepare_step_slices(
+        &mut self,
+        _: usize,
+    ) -> (&[Self::LeftNodeType], &mut [Self::RightNodeType]) {
         self.x += 1;
         self.current = {
-            (&self.current).into_par_iter().map(|node| Arc::new(node.clone())).collect_into_vec(&mut self.previous);
+            (&self.current)
+                .into_par_iter()
+                .map(|node| Arc::new(node.clone()))
+                .collect_into_vec(&mut self.previous);
             (0..self.height)
-            .into_par_iter()
-            .map(|y| Node::new(self.x, y))
-            .collect()
+                .into_par_iter()
+                .map(|y| Node::new(self.x, y))
+                .collect()
         };
 
         (&self.previous[..], &mut self.current[..])
